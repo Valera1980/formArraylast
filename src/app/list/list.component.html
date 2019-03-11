@@ -1,0 +1,13 @@
+<ul>
+  <ng-container *ngFor="let user of users">
+    <li (click)="selectUser(user.id)">
+      <p>{{user.id}}</p>
+      <p>{{user.name}}</p>
+      <ng-container *ngFor="let phone of user?.phones">
+        <p>{{phone | json}}</p>
+      </ng-container>
+      
+
+    </li>
+  </ng-container>
+</ul>

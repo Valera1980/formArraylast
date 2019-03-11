@@ -1,0 +1,16 @@
+<div class="mainform" [formGroup]="fff">
+  <p>
+     <input type="text" formControlName="id" readonly="true">
+  </p>
+  <p>
+    <input type="text" formControlName="name">
+  </p>
+  
+  <div formArrayName="phones" *ngFor="let phone of phones.controls; let i=index">
+    <div [formGroupName]="i">
+      <input type="text" formControlName="id">
+      <input type="text" formControlName="phoneNumber">
+    </div>
+
+  </div>
+</div>
