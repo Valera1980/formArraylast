@@ -1,6 +1,8 @@
+import { Phone } from './../phone';
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, FormArray } from '@angular/forms';
 import { UserService } from '../user.service';
+import { distinctUntilChanged, withLatestFrom, debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-form',
@@ -22,12 +24,13 @@ export class FormComponent implements OnInit {
       phones: this.fb.array([this.createPhone()])
     });
 
-    this.us.select.subscribe(id => {
+    this.us.select
+    .pipe(distinctUntilChanged())
+    .subscribe(id => {
       const u = this.us.getUserById(id);
-      console.log(u);
       this.fff.patchValue({
         id: u.id,
-        name: u.name,
+        name: u.name
       });
       while ( this.phones.length) {
         this.phones.removeAt(0);
@@ -37,14 +40,26 @@ export class FormComponent implements OnInit {
       }
     });
 
-    this.fff.valueChanges.subscribe(values => {
+    // this.phones.valueChanges
+    // .subscribe(value => {
+    //   console.log(value);
+    //   const u = this.us.getUserById(this.id.value);
+    //   u.phones = value;
+    // });
+
+    this.fff.valueChanges
+    .pipe(
+      debounceTime(100)
+    )
+    .subscribe(values => {
       console.log('TCL: FormComponent -> ngOnInit -> values', values);
       const u = this.us.getUserById(values.id);
-      for (const key of Object.keys(values)) {
-        if (key) {
-          u[key] = values[key];
-        }
-      }
+      u.phones = this.phones.value;
+      // for (const key of Object.keys(values)) {
+      //   if (key) {
+      //     u[key] = values[key];
+      //   }
+      // }
     });
   }
 
@@ -59,5 +74,8 @@ export class FormComponent implements OnInit {
   }
   addPhone(phone) {
     this.phones.push(this.createPhone(phone));
+  }
+  get id() {
+    return this.fff.get('id');
   }
 }
