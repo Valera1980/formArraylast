@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, FormArray } from '@angular/forms';
 import { UserService } from '../user.service';
+import { default as iziToast } from 'izitoast';
+
 
 @Component({
   selector: 'app-form',
@@ -59,5 +61,11 @@ export class FormComponent implements OnInit {
   }
   addPhone(phone) {
     this.phones.push(this.createPhone(phone));
+  }
+  showToast(){
+    iziToast.success({
+      title: 'OK',
+      message: 'Successfully inserted record!',
+  });
   }
 }
