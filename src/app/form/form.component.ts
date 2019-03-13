@@ -1,8 +1,10 @@
+import { Phone } from './../phone';
 import { Component, OnInit } from '@angular/core';
 import { FormGroup, FormBuilder, FormArray } from '@angular/forms';
 import { UserService } from '../user.service';
 import { default as iziToast } from 'izitoast';
 
+import { distinctUntilChanged, debounceTime } from 'rxjs/operators';
 
 @Component({
   selector: 'app-form',
@@ -24,33 +26,46 @@ export class FormComponent implements OnInit {
       phones: this.fb.array([this.createPhone()])
     });
 
-    this.us.select.subscribe(id => {
-      const u = this.us.getUserById(id);
-      console.log(u);
-      this.fff.patchValue({
-        id: u.id,
-        name: u.name,
-      });
-      while ( this.phones.length) {
-        this.phones.removeAt(0);
-      }
-      for ( const p of u.phones) {
-        this.addPhone(p);
-      }
-    });
-
-    this.fff.valueChanges.subscribe(values => {
-      console.log('TCL: FormComponent -> ngOnInit -> values', values);
-      const u = this.us.getUserById(values.id);
-      for (const key of Object.keys(values)) {
-        if (key) {
-          u[key] = values[key];
+    this.us.select
+      .pipe(distinctUntilChanged())
+      .subscribe(id => {
+        const u = this.us.getUserById(id);
+        this.fff.patchValue({
+          id: u.id,
+          name: u.name
+        });
+        while (this.phones.length) {
+          this.phones.removeAt(0);
         }
-      }
-    });
+        for (const p of u.phones) {
+          this.addPhone(p);
+        }
+      });
+
+    // this.phones.valueChanges
+    // .subscribe(value => {
+    //   console.log(value);
+    //   const u = this.us.getUserById(this.id.value);
+    //   u.phones = value;
+    // });
+
+    this.fff.valueChanges
+      .pipe(
+        debounceTime(100)
+      )
+      .subscribe(values => {
+        console.log('TCL: FormComponent -> ngOnInit -> values', values);
+        const u = this.us.getUserById(values.id);
+        u.phones = this.phones.value;
+        // for (const key of Object.keys(values)) {
+        //   if (key) {
+        //     u[key] = values[key];
+        //   }
+        // }
+      });
   }
 
-  createPhone(phone = {id: '---', phoneNumber: '0909'}): FormGroup {
+  createPhone(phone = { id: '---', phoneNumber: '0909' }): FormGroup {
     return this.fb.group({
       id: phone.id,
       phoneNumber: phone.phoneNumber
@@ -62,10 +77,13 @@ export class FormComponent implements OnInit {
   addPhone(phone) {
     this.phones.push(this.createPhone(phone));
   }
-  showToast(){
+  showToast() {
     iziToast.success({
       title: 'OK',
       message: 'Successfully inserted record!',
-  });
+    });
+  }
+  get id() {
+    return this.fff.get('id');
   }
 }
